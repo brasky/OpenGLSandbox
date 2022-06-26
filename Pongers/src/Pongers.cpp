@@ -18,6 +18,10 @@
 #include <imgui\imgui_impl_glfw.h>
 #include <imgui\imgui_impl_opengl3.h>
 
+#include "Demo\DemoClearColor.h"
+#include "Demo\DemoTexture2D.h"
+#include "Demo\Demo.h"
+
 int main(void)
 {
     GLFWwindow* window;
@@ -49,21 +53,10 @@ int main(void)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
-
     const char* glsl_version = "#version 130";
-
-    // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
-
-    // Our state
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     if (glewInit() != GLEW_OK) {
         std::cout << "ERROR!" << std::endl;
@@ -72,111 +65,57 @@ int main(void)
     std::cout << glGetString(GL_VERSION) << std::endl;
 
     glEnable(GL_DEBUG_OUTPUT);
-
-    float positions[] = {
-       -50.0f, -50.0f, 0.0f, 0.0f, //0
-        50.0f,  -50.0f, 1.0f, 0.0f, //1
-        50.0f, 50.0f, 1.0f, 1.0f, //2
-        -50.0f, 50.0f, 0.0f, 1.0f, //3
-    };
-
-    unsigned int indices[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    VertexArray* va = new VertexArray();
-    VertexBuffer* vb = new VertexBuffer(positions, 4 * 4 * sizeof(float));
-
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
-    layout.Push<float>(2);
-    va->AddBuffer(*vb, layout);
-    IndexBuffer* ib = new IndexBuffer(indices, 6);
-
-    glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-    Shader* shader = new Shader("res/shaders/Basic.shader");
-
-    Texture texture("res/textures/galaxy.png");
-    texture.Bind();
-    shader->SetUniform1i("u_Texture", 0);
-
-    va->Unbind();
-    vb->Unbind();
-    ib->Unbind();
-    shader->Unbind();
-
     Renderer* renderer = new Renderer();
 
-    glm::vec3 translation(200, 200, 0);
-    glm::vec3 translation2(300, 300, 0);
+    demo::Demo* currentDemo = nullptr;
+    demo::DemoMenu* demoMenu = new demo::DemoMenu(currentDemo);
+    currentDemo = demoMenu;
 
-    /* Loop until the user closes the window */
+    demoMenu->RegisterDemo<demo::DemoTexture2D>("2D Textures");
+    demoMenu->RegisterDemo<demo::DemoClearColor>("Clear Color");
+
     while (!glfwWindowShouldClose(window))
     {
-        /* Render here */
+        Debug(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
         renderer->Clear();
 
-        // Start the Dear ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        shader->Bind();
-
+        if (currentDemo)
         {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation);
-            glm::mat4 mvp = proj * view * model;
-            shader->SetUniformMat4f("u_MVP", mvp);
-            renderer->Draw(*va, *ib, *shader);
-        }
+            currentDemo->OnUpdate(0);
+            currentDemo->OnRender();
+            ImGui::Begin("Demos");
+            if (currentDemo != demoMenu && ImGui::Button("<-"))
+            {
+                delete currentDemo;
+                currentDemo = demoMenu;
+            }
 
-        {
-            glm::mat4 model = glm::translate(glm::mat4(1.0f), translation2);
-            glm::mat4 mvp = proj * view * model;
-            shader->SetUniformMat4f("u_MVP", mvp);
-            renderer->Draw(*va, *ib, *shader);
-        }
-
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-        {
-            ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-            ImGui::SliderFloat3("Translation 1", &translation.x, 0.0f, 960.0f);
-            ImGui::SliderFloat3("Translation 2", &translation2.x, 0.0f, 960.0f);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            currentDemo->OnImGuiRender();
             ImGui::End();
         }
 
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        //glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
-        //glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
-        /* Poll for and process events */
         glfwPollEvents();
     }
-    //glDeleteProgram(shader);
 
-    delete vb;
-    delete va;
-    delete ib;
-    delete shader;
+    if (currentDemo != demoMenu)
+        delete demoMenu;
+    
+    delete currentDemo;
+
     delete renderer;
 
-    // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

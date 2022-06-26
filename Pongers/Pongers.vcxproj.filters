@@ -921,6 +921,9 @@
     <ClInclude Include="src\Demo\DemoClearColor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Demo\DemoTexture2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pongers.cpp">
@@ -975,6 +978,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Demo\DemoClearColor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Demo\DemoTexture2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
