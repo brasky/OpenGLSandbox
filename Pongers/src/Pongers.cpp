@@ -20,6 +20,7 @@
 
 #include "Demo\DemoClearColor.h"
 #include "Demo\DemoTexture2D.h"
+#include "Demo\Pong.h"
 #include "Demo\Demo.h"
 
 int main(void)
@@ -68,13 +69,14 @@ int main(void)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Renderer* renderer = new Renderer();
+    Renderer* renderer = new Renderer(*window);
 
     demo::Demo* currentDemo = nullptr;
     demo::DemoMenu* demoMenu = new demo::DemoMenu(currentDemo);
     currentDemo = demoMenu;
 
-    demoMenu->RegisterDemo<demo::DemoTexture2D>("2D Textures");
+    demoMenu->RegisterDemo<demo::Pong>("Pong", *renderer);
+    demoMenu->RegisterDemo<demo::DemoTexture2D>("2D Textures", *renderer);
     demoMenu->RegisterDemo<demo::DemoClearColor>("Clear Color");
 
     while (!glfwWindowShouldClose(window))

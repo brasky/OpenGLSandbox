@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <Renderer.h>
 
 namespace demo 
 {
@@ -29,6 +30,15 @@ namespace demo
         {
             std::cout << "Registering demo " << name << std::endl;
             m_Demos.push_back(std::make_pair(name, []() { return new T(); }));
+        }
+
+        template<typename T>
+        void RegisterDemo(const std::string& name, Renderer& renderer)
+        {
+            std::cout << "Registering demo " << name << std::endl;
+
+            m_Demos.push_back(std::make_pair(name, [&renderer]() 
+                { return new T(std::forward<Renderer&>(renderer)); }));
         }
     private:
         Demo*& m_CurrentDemo;

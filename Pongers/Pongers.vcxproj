@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Demo\Pong.h" />
     <ClInclude Include="src\Demo\Demo.h" />
     <ClInclude Include="src\Demo\DemoClearColor.h" />
     <ClInclude Include="src\Demo\DemoTexture2D.h" />
@@ -391,6 +392,7 @@
     <ClInclude Include="src\Texture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Demo\Pong.cpp" />
     <ClCompile Include="src\Demo\Demo.cpp" />
     <ClCompile Include="src\Demo\DemoClearColor.cpp" />
     <ClCompile Include="src\Demo\DemoTexture2D.cpp" />

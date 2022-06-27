@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include <string>
 #include <iostream>
+#include "GLFW\glfw3.h"
 
 void DebugCallback(
     GLenum source,
@@ -20,6 +21,13 @@ void DebugCallback(
     }
 }
 
+Renderer::Renderer(GLFWwindow& window)
+    : m_Window(window)
+{
+    glfwSetWindowUserPointer(&window, this);
+    glfwSetKeyCallback(&m_Window, &Renderer::key_callback);
+}
+
 void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const
 {
     shader.Bind();
@@ -31,4 +39,26 @@ void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& 
 void Renderer::Clear() const
 {
     Debug(glClear(GL_COLOR_BUFFER_BIT));
+}
+
+void Renderer::SetKeyCallback(std::vector<int> keys, std::function<void(int, int)> function)
+{
+    for (auto key : keys)
+        m_KeyCallbacks.insert(std::make_pair(key, function));
+}
+
+void Renderer::RemoveKeyCallback(std::vector<int> keys)
+{
+    for (auto key : keys)
+        m_KeyCallbacks.erase(key);
+}
+
+void Renderer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    auto& renderer = *static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+    
+    auto keyMap = renderer.m_KeyCallbacks.find(key);
+    if (keyMap == renderer.m_KeyCallbacks.end()) return;
+
+    keyMap->second(key, action);
 }
